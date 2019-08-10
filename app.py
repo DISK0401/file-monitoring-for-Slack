@@ -97,6 +97,23 @@ def get_users():
     return result
 
 
+def delete_file(file_id):
+    """
+    指定ファイルを削除する
+    """
+    header = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    payload = {
+        'token': slack_token,
+        'file': file_id
+    }
+    logger.debug("[FILES_DELETE_API_PAYLOAD] " + str(payload))
+    response = requests.post(FILES_DELETE_API_URL, headers=header, params=payload)
+    logger.debug("[FILES_DELETE_API_RESULT] " + str(response.json()))
+    return response.json()['ok']
+
+
 def get_files(from_time=None, to_time=None):
     """
     ファイル一覧を取得する
