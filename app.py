@@ -1,7 +1,7 @@
 # coding:utf-8
 import logging.handlers
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
-from config import slack_token
+from config import slack_token, allow_file_mode, allow_file_type, ng_file_type, allow_unknown_file_type
 import threading
 import requests
 import time
@@ -136,6 +136,59 @@ def get_files(from_time=None, to_time=None):
     logger.debug("[FILE_LIST_API_RESULT] " + str(result))
     logger.info("[HIT_FILES_NUM] " + str(len(result)))
     return result
+
+
+def judge_delete_target_file(file_info):
+    """
+    削除対象のファイルかどうかを判定する
+    """
+    to_delete = False
+
+    # ファイルモードが削除対象かどうか
+    if file_info['mode'] == 'snippets':
+        # スニペットの場合
+        if not allow_file_mode['snippets']:
+            to_delete = True
+
+    elif (file_info['mode'] == 'hosted'):
+        # Slackに直接アップロードした場合
+        if not allow_file_mode['hosted']:
+            to_delete = True
+        else:
+            to_delete = is_delete_target_file_type(file_info)
+
+    elif (file_info['mode'] == 'external'):
+        # アプリ連携などでGoogle Dviveなどから取り込まれた場合
+        if not allow_file_mode['external']:
+            to_delete = True
+        else:
+            to_delete = is_delete_target_file_type(file_info)
+
+    elif file_info['mode'] == 'docs':
+        if not allow_file_mode['docs']:
+            to_delete = True
+
+    else:
+        # 未知のモードの場合
+        to_delete = allow_unknown_file_type
+    
+    return to_delete
+
+
+def is_delete_target_file_type(file_info):
+    """
+    削除対象のファイルタイプかどうかを判定する
+    """
+    pretty_type = file_info['pretty_type']
+    if pretty_type in ng_file_type:
+        # NGリストに入っている場合は、True
+        return True
+    elif pretty_type in allow_file_type:
+        # 許諾リストに入っている場合は、False
+        return False
+    else:
+        # どちらにも入っていない場合は、設定に従う
+        return allow_unknown_file_type
 
 
 if __name__ == '__main__':

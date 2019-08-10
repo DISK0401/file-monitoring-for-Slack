@@ -1,2 +1,18 @@
+# coding:utf-8
+
+# 許可するファイルタイプ(file_typeより優先されます)
+allow_file_mode = {
+    'snippets': True,  # スニペットの場合
+    'hosted': True,  # ローカルファイルの場合
+    'docs': True,  # ポストの場合
+    'external': False  # OneDriveやGoogle Drive連携
+}
+# 非許諾ファイル形式(allow_file_typeよりも優先される)
+ng_file_type = ['PDF', 'バイナリ', 'Zip']
+# 許諾ファイル形式
+allow_file_type = ['JPG', 'JPEG', 'TIFF', 'BMP', 'PNG', 'GIF', 'PowerPoint プレゼンテーション', 'CSV']
+# 上記以外のファイルタイプが出現した場合。許可するかどうか
+allow_unknown_file_type = False
+
 # Slack Legacy Token
 slack_token = 'xoxp-****'
