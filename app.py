@@ -11,6 +11,7 @@ import datetime
 # API_URL
 CHANNEL_LIST_API_URL = 'https://slack.com/api/channels.list'
 GROUP_LIST_API_URL = 'https://slack.com/api/groups.list'
+USER_LIST_API_URL = 'https://slack.com/api/users.list'
 
 
 def scheduler(interval_time, func, wait=True):
@@ -75,6 +76,22 @@ def get_private_channels():
     response = requests.get(GROUP_LIST_API_URL, headers=header, params=payload)
     result = response.json()['groups']
     logger.debug("[GROUP_LIST_API_RESULT] " + str(result))
+    return result
+
+
+def get_users():
+    """
+    ユーザー一覧を取得する
+    """
+    header = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    payload = {
+        'token': slack_token
+    }
+    response = requests.get(USER_LIST_API_URL, headers=header, params=payload)
+    result = response.json()['members']
+    logger.debug("[USER_LIST_API_RESULT] " + str(result))
     return result
 
 
