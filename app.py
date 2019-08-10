@@ -12,6 +12,7 @@ import datetime
 CHANNEL_LIST_API_URL = 'https://slack.com/api/channels.list'
 GROUP_LIST_API_URL = 'https://slack.com/api/groups.list'
 USER_LIST_API_URL = 'https://slack.com/api/users.list'
+FILES_LIST_API_URL = 'https://slack.com/api/files.list'
 
 
 def scheduler(interval_time, func, wait=True):
@@ -92,6 +93,30 @@ def get_users():
     response = requests.get(USER_LIST_API_URL, headers=header, params=payload)
     result = response.json()['members']
     logger.debug("[USER_LIST_API_RESULT] " + str(result))
+    return result
+
+
+def get_files(from_time=None, to_time=None):
+    """
+    ファイル一覧を取得する
+    """
+    header = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    payload = {
+        'token': slack_token,
+        'count': 100,
+        'page': 1,
+    }
+    if from_time:
+        payload['ts_from'] = from_time
+    if to_time:
+        payload['ts_to'] = to_time
+    logger.debug("[FILE_LIST_API_PAYLOAD] " + str(payload))
+    response = requests.get(FILES_LIST_API_URL, headers=header, params=payload)
+    result = response.json()['files']
+    logger.debug("[FILE_LIST_API_RESULT] " + str(result))
+    logger.info("[HIT_FILES_NUM] " + str(len(result)))
     return result
 
 
