@@ -2,6 +2,14 @@
 import logging.handlers
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 from config import slack_token
+import threading
+import requests
+import time
+import datetime
+
+
+# API_URL
+CHANNEL_LIST_API_URL = 'https://slack.com/api/channels.list'
 
 
 def scheduler(interval_time, func, wait=True):
@@ -29,6 +37,25 @@ def worker(interval_time):
     """
     logger.info("[start] worker")
     logger.info("[end] worker")
+
+
+def get_public_channels():
+    """
+    パブリックチャンネルの一覧を取得する
+    """
+    header = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'exclude_archived': 'true',
+        'exclude_members': 'false',
+        'limit': '0'
+    }
+    payload = {
+        'token': slack_token
+    }
+    response = requests.get(CHANNEL_LIST_API_URL, headers=header, params=payload)
+    result = response.json()['channels']
+    logger.debug("[CHANNEL_LIST_API_RESULT] " + str(result))
+    return result
 
 
 if __name__ == '__main__':
