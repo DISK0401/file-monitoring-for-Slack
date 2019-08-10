@@ -13,6 +13,7 @@ CHANNEL_LIST_API_URL = 'https://slack.com/api/channels.list'
 GROUP_LIST_API_URL = 'https://slack.com/api/groups.list'
 USER_LIST_API_URL = 'https://slack.com/api/users.list'
 FILES_LIST_API_URL = 'https://slack.com/api/files.list'
+FILES_DELETE_API_URL = 'https://slack.com/api/files.delete'
 
 
 def scheduler(interval_time, func, wait=True):
