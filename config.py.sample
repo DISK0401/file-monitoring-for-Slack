@@ -11,8 +11,8 @@ allow_file_mode = {
 ng_file_type = ['PDF', 'バイナリ', 'Zip']
 # 許諾ファイル形式
 allow_file_type = ['JPG', 'JPEG', 'TIFF', 'BMP', 'PNG', 'GIF', 'PowerPoint プレゼンテーション', 'CSV']
-# 上記以外のファイルタイプが出現した場合。許可するかどうか
-allow_unknown_file_type = False
+# 上記以外のファイルタイプが出現した場合に、削除する。
+delete_unknown_file_type = True
 
 # Slack Legacy Token
 slack_token = 'xoxp-****'

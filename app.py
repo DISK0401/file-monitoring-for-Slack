@@ -1,7 +1,7 @@
 # coding:utf-8
 import logging.handlers
 from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
-from config import slack_token, allow_file_mode, allow_file_type, ng_file_type, allow_unknown_file_type
+from config import slack_token, allow_file_mode, allow_file_type, ng_file_type, delete_unknown_file_type
 import threading
 import requests
 import time
@@ -40,6 +40,7 @@ def worker(interval_time):
     実際に実行される関数
     """
     logger.info("[start] worker")
+    illegal_file_monitoring()
     logger.info("[end] worker")
 
 
@@ -131,6 +132,7 @@ def get_files(from_time=None, to_time=None):
     if to_time:
         payload['ts_to'] = to_time
     logger.debug("[FILE_LIST_API_PAYLOAD] " + str(payload))
+    logger.debug("[TS_TIME] from:" + (str(datetime.datetime.fromtimestamp(from_time)) if not(from_time is None) else "None") + ", to:" + (str(datetime.datetime.fromtimestamp(to_time)) if not(to_time is None) else "None"))
     response = requests.get(FILES_LIST_API_URL, headers=header, params=payload)
     result = response.json()['files']
     logger.debug("[FILE_LIST_API_RESULT] " + str(result))
@@ -170,7 +172,7 @@ def judge_delete_target_file(file_info):
 
     else:
         # 未知のモードの場合
-        to_delete = allow_unknown_file_type
+        to_delete = delete_unknown_file_type
     
     return to_delete
 
@@ -188,7 +190,33 @@ def is_delete_target_file_type(file_info):
         return False
     else:
         # どちらにも入っていない場合は、設定に従う
-        return allow_unknown_file_type
+        return delete_unknown_file_type
+
+
+def illegal_file_monitoring():
+    """
+    アップロード禁止ファイルの監視
+    """
+    global last_execute_time
+    if last_execute_time is None:
+        last_execute_time = int(time.time())
+        files = get_files(to_time=last_execute_time)
+    else:
+        now = int(time.time())
+        files = get_files(from_time=last_execute_time, to_time=now)
+        last_execute_time = now
+
+    for file_info in files:
+        logger.info("[FILE_INFO] " + str(file_info))
+        logger.info("[FILE_CREATE_DATE] " + str(datetime.datetime.fromtimestamp(file_info['created'])))
+        is_delete = judge_delete_target_file(file_info)
+        logger.info("[IS_DELETE] " + str(is_delete))
+        if is_delete:
+            result = delete_file(file_info['id'])
+            if result:
+                logger.info("[FILE_DELETE_SUCCESS] ファイル名：" + file_info['name'] + ", pretty_type：" + file_info['pretty_type'])
+            else:
+                logger.info("[FILE_DELETE_FAILED] ファイル名：" + file_info['name'] + ", pretty_type：" + file_info['pretty_type'])
 
 
 if __name__ == '__main__':
@@ -209,6 +237,7 @@ if __name__ == '__main__':
     logger.setLevel(DEBUG)
     logger.propagate = False
     logger.info("Start-UP")
-    interval_tm = 15
+    interval_tm = 30
     logger.info("[interval_time] " + str(interval_tm) + "s")
+    last_execute_time = None
     scheduler(interval_tm, worker, wait=True)
